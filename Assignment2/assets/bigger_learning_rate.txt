@@ -1,0 +1,35 @@
+[Squared] Step 0: Loss = 14.1601, W = 0.0305, b = 0.0201, LR = 0.005000
+[Huber] Step 0: Loss = 2.5603, W = 0.0031, b = 0.0023, LR = 0.005000
+[Hybrid] Step 0: Loss = 8.5929, W = 0.0168, b = 0.0112, LR = 0.005000
+[Squared] Step 100: Loss = 2.7226, W = 1.9310, b = 1.2769, LR = 0.005000
+[Huber] Step 100: Loss = 2.2644, W = 0.3117, b = 0.2318, LR = 0.005000
+[Hybrid] Step 100: Loss = 3.4809, W = 1.3267, b = 0.8862, LR = 0.005000
+[Squared] Step 200: Loss = 1.2293, W = 2.6159, b = 1.7336, LR = 0.005000
+[Huber] Step 200: Loss = 1.9766, W = 0.6184, b = 0.4551, LR = 0.005000
+[Hybrid] Step 200: Loss = 1.6929, W = 2.1004, b = 1.4029, LR = 0.005000
+[Squared] Step 300: Loss = 1.0343, W = 2.8628, b = 1.8997, LR = 0.005000
+[Huber] Step 300: Loss = 1.6999, W = 0.9213, b = 0.6707, LR = 0.005000
+[Hybrid] Step 300: Loss = 1.1186, W = 2.5393, b = 1.6921, LR = 0.005000
+[Squared] Step 400: Loss = 1.0088, W = 2.9518, b = 1.9600, LR = 0.005000
+[Huber] Step 400: Loss = 1.4382, W = 1.2184, b = 0.8770, LR = 0.005000
+[Hybrid] Step 400: Loss = 0.9571, W = 2.7716, b = 1.8443, LR = 0.005000
+[Squared] Step 500: Loss = 1.0055, W = 2.9838, b = 1.9819, LR = 0.005000
+[Huber] Step 500: Loss = 1.1966, W = 1.5062, b = 1.0716, LR = 0.005000
+[Hybrid] Step 500: Loss = 0.9157, W = 2.8888, b = 1.9217, LR = 0.005000
+[Squared] Step 600: Loss = 1.0050, W = 2.9954, b = 1.9899, LR = 0.005000
+[Huber] Step 600: Loss = 0.9819, W = 1.7799, b = 1.2512, LR = 0.005000
+[Hybrid] Step 600: Loss = 0.9058, W = 2.9459, b = 1.9597, LR = 0.005000
+[Squared] Step 700: Loss = 1.0050, W = 2.9996, b = 1.9928, LR = 0.005000
+[Huber] Step 700: Loss = 0.8013, W = 2.0330, b = 1.4124, LR = 0.005000
+[Hybrid] Step 700: Loss = 0.9034, W = 2.9742, b = 1.9780, LR = 0.005000
+[Squared] Step 800: Loss = 1.0050, W = 3.0011, b = 1.9939, LR = 0.005000
+[Huber] Step 800: Loss = 0.6612, W = 2.2576, b = 1.5514, LR = 0.005000
+[Hybrid] Step 800: Loss = 0.9028, W = 2.9878, b = 1.9870, LR = 0.005000
+[Squared] Step 900: Loss = 1.0050, W = 3.0016, b = 1.9942, LR = 0.005000
+[Huber] Step 900: Loss = 0.5634, W = 2.4461, b = 1.6656, LR = 0.005000
+[Hybrid] Step 900: Loss = 0.9027, W = 2.9941, b = 1.9912, LR = 0.005000
+
+Final Parameters:
+Squared Loss: W = 3.0018, b = 1.9944, Loss = 1.0050, Final LR = 0.005000
+Huber Loss: W = 2.5947, b = 1.7541, Loss = 0.5024, Final LR = 0.005000
+Hybrid Loss: W = 2.9968, b = 1.9933, Loss = 0.9027, Final LR = 0.005000

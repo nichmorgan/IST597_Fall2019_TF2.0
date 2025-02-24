@@ -1,0 +1,12 @@
+Do you get the exact same results if you run the Notebook multiple times without changing any
+parameters? Why or why not?[Explain significance of seed].
+
+Final Parameters:
+Squared Loss: W = 2.5873, b = 1.7232, Loss = 1.2400, Final LR = 0.001000
+Huber Loss: W = 0.6098, b = 0.4535, Loss = 1.9650, Final LR = 0.001000
+Hybrid Loss: W = 2.0652, b = 1.3910, Loss = 1.7122, Final LR = 0.001000
+
+Final Parameters:
+Squared Loss: W = 2.6090, b = 1.7329, Loss = 1.2308, Final LR = 0.001000
+Huber Loss: W = 0.6200, b = 0.4553, Loss = 1.9808, Final LR = 0.001000
+Hybrid Loss: W = 2.0948, b = 1.4008, Loss = 1.6924, Final LR = 0.001000

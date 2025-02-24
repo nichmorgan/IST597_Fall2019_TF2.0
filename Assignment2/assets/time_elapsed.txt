@@ -1,0 +1,9 @@
+Average Time per Step on DeviceType.CPU (seconds):
+Squared Loss: 0.004438
+Huber Loss: 0.006136
+Hybrid Loss: 0.005387
+
+Average Time per Step on DeviceType.GPU (seconds):
+Squared Loss: 0.004599
+Huber Loss: 0.006347
+Hybrid Loss: 0.005588
