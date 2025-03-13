@@ -6,36 +6,57 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 
 import numpy as np
 import tensorflow as tf
-tf.enable_eager_execution()
+tf.compat.v1.enable_eager_execution()
 import time
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 
-import utils
 tf.executing_eagerly()
 # Define paramaters for the model
-learning_rate = None
-batch_size = None
-n_epochs = None
-n_train = None
-n_test = None
+learning_rate = 0.001
+batch_size = 1000
+n_epochs = 1000
+n_train = 100
+n_test = 100
 
 # Step 1: Read in data
-fmnist_folder = 'None'
+fmnist_folder = './data/fashion'
 #Create dataset load function [Refer fashion mnist github page for util function]
 #Create train,validation,test split
 #train, val, test = utils.read_fmnist(fmnist_folder, flatten=True)
 
+# https://github.com/zalandoresearch/fashion-mnist/blob/master/utils/mnist_reader.py
+def load_mnist(path, kind='train'):
+    import os
+    import gzip
+    import numpy as np
+
+    """Load MNIST data from `path`"""
+    labels_path = os.path.join(path,
+                               '%s-labels-idx1-ubyte.gz'
+                               % kind)
+    images_path = os.path.join(path,
+                               '%s-images-idx3-ubyte.gz'
+                               % kind)
+
+    with gzip.open(labels_path, 'rb') as lbpath:
+        labels = np.frombuffer(lbpath.read(), dtype=np.uint8,
+                               offset=8)
+
+    with gzip.open(images_path, 'rb') as imgpath:
+        images = np.frombuffer(imgpath.read(), dtype=np.uint8,
+                               offset=16).reshape(len(labels), 784)
+
+    return images, labels
+
 # Step 2: Create datasets and iterator
 # create training Dataset and batch it
-train_data = None
+train_images, train_class = load_mnist(fmnist_folder)
+train_data = tf.data.Dataset.from_tensor_slices((train_images, train_class)).batch(batch_size)
 
 # create testing Dataset and batch it
-test_data = None
-#############################
-########## TO DO ############
-#############################
-
+test_images, test_class = load_mnist(fmnist_folder, kind="t10k")
+test_data = tf.data.Dataset.from_tensor_slices((test_images, test_class)).batch(batch_size)
 
 # create one iterator and initialize it with different datasets
 iterator = tf.data.Iterator.from_structure(train_data.output_types, 
@@ -50,36 +71,26 @@ test_init = iterator.make_initializer(test_data)	# initializer for train_data
 # b is initialized to 0
 # shape of w depends on the dimension of X and Y so that Y = tf.matmul(X, w)
 # shape of b depends on Y
-w, b = None, None
-#############################
-########## TO DO ############
-#############################
-
+img_shape = 28*28
+num_classes = 10
+w = tf.Variable(tf.random.normal([img_shape, num_classes], stddev=0.01))
+b = tf.Variable(tf.zeros([num_classes]))
 
 # Step 4: build model
 # the model that returns the logits.
 # this logits will be later passed through softmax layer
-logits = None
-#############################
-########## TO DO ############
-#############################
+def model(x):
+    return tf.matmul(x, w) + b
 
+logits = model(img)
 
 # Step 5: define loss function
 # use cross entropy of softmax of logits as the loss function
-loss = None
-#############################
-########## TO DO ############
-#############################
-
+loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=label, logits=logits))
 
 # Step 6: define optimizer
 # using Adam Optimizer with pre-defined learning rate to minimize loss
-optimizer = None
-#############################
-########## TO DO ############
-#############################
-
+optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss)
 
 # Step 7: calculate accuracy with test set
 preds = tf.nn.softmax(logits)
@@ -88,15 +99,34 @@ accuracy = tf.reduce_sum(tf.cast(correct_preds, tf.float32))
 
 #Step 8: train the model for n_epochs times
 for i in range(n_epochs):
-	total_loss = 0
-	n_batches = 0
-	#Optimize the loss function
-	print("Train and Validation accuracy")
-	################################
-	###TO DO#####
-	############
+    total_loss = 0
+    n_batches = 0
+    #Optimize the loss function
+    print("Train and Validation accuracy")
+    for batch, (batch_images, batch_labels) in enumerate(train_data):
+        with tf.GradientTape() as tape:
+            batch_logits = model(batch_images)
+            batch_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf.one_hot(batch_labels, num_classes), logits=batch_logits))
+        grads = tape.gradient(batch_loss, [w, b])
+        optimizer.apply_gradients(zip(grads, [w, b]))
+        total_loss += batch_loss.numpy()
+        n_batches += 1
+    
+    print(f"Epoch {i+1}, Loss: {total_loss / n_batches}")
 	
 #Step 9: Get the Final test accuracy
+total_correct_preds = 0
+total_samples = 0
+
+for batch_images, batch_labels in test_data:
+    batch_logits = model(batch_images)
+    batch_preds = tf.nn.softmax(batch_logits)
+    batch_correct_preds = tf.equal(tf.argmax(batch_preds, 1), tf.argmax(tf.one_hot(batch_labels, num_classes), 1))
+    total_correct_preds += tf.reduce_sum(tf.cast(batch_correct_preds, tf.float32)).numpy()
+    total_samples += batch_labels.shape[0]
+
+test_accuracy = total_correct_preds / total_samples
+print(f"Final Test Accuracy: {test_accuracy:.4f}")
 
 #Step 10: Helper function to plot images in 3*3 grid
 #You can change the function based on your input pipeline
