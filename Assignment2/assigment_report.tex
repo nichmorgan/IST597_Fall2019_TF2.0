@@ -1,5 +1,4 @@
 \documentclass{article}
-
 \usepackage[final]{neurips_2019}
 \usepackage[utf8]{inputenc} % allow utf-8 input
 \usepackage[T1]{fontenc}    % use 8-bit T1 fonts
@@ -11,6 +10,7 @@
 \usepackage{microtype}      % microtypography
 \usepackage{graphicx}       % for including figures
 \usepackage{amsmath}        % for improved equation formatting
+\usepackage{float}
 
 \title{CS 599: Foundations of Deep Learning\\Assignment \#00001}
 \author{Morgan C. Nicholson}
@@ -64,7 +64,7 @@ The Hybrid Loss, balancing absolute and squared components, began at 8.5929 and 
 
 Table~\ref{tab:loss_comparison} summarizes the performance of the three loss functions based on final loss and parameter estimates after 1,000 iterations.
 
-\begin{table}[h]
+\begin{table}[H]
     \centering
     \caption{Comparison of Loss Functions}
     \label{tab:loss_comparison}
@@ -81,7 +81,7 @@ Table~\ref{tab:loss_comparison} summarizes the performance of the three loss fun
 
 The Squared Loss achieved the lowest final loss, followed by Hybrid Loss, with Huber Loss performing the worst in this metric. However, parameter convergence varied, with Squared Loss closest to the true \( W = 3 \) and \( b = 2 \), Hybrid Loss moderately close, and Huber Loss significantly off due to its robustness focus.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{assets/simple_results.png}
     \caption{Squared, Huber, and Hybrid Loss Functions performance}
@@ -92,7 +92,7 @@ The Squared Loss achieved the lowest final loss, followed by Hybrid Loss, with H
 
 After defining the loss functions, I tested whether running my experiments repeatedly without changes produces identical results and why randomness occurs without control. In an early setup with 1,000 steps and a learning rate of 0.001, two runs differed slightly, as shown in Table~\ref{tab:run_comparison}.
 
-\begin{table}[h]
+\begin{table}[H]
     \centering
     \caption{Two Runs from Early Setup}
     \label{tab:run_comparison}
@@ -116,7 +116,7 @@ These differences arose because randomness wasn’t fixed. Without a seed, the s
 
 I increased the learning rate from 0.001 (1x) to 0.005 (5x) to speed up convergence in this noisy regression task (\( Y = 3X + 2 + \epsilon \), \( \epsilon \sim \mathcal{N}(0, 2) \)). A larger learning rate accelerates parameter updates, aiming to reach optimal \( W = 3 \) and \( b = 2 \) faster, though noise limits the final loss. Table~\ref{tab:lr_comparison} compares the results after 1,000 iterations.
 
-\begin{table}[h]
+\begin{table}[H]
     \centering
     \caption{Comparison of Learning Rates: 1x (0.001) vs. 5x (0.005)}
     \label{tab:lr_comparison}
@@ -136,7 +136,7 @@ I increased the learning rate from 0.001 (1x) to 0.005 (5x) to speed up converge
 
 The 5x learning rate reduced final losses (e.g., Huber from 1.9772 to 0.5024) and brought parameters closer to the true values (e.g., Squared \( W \) from 2.6087 to 3.0018), converging faster (e.g., Squared loss hit 1.2293 by step 200 vs. 6.8510). The increase was chosen to overcome slow progress at 1x, balancing speed and stability despite noise.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{assets/bigger_learning_rate.png}
     \caption{Fitted and Loss Curves 5x (0.005) Learning Rates}
@@ -155,7 +155,7 @@ The 5x learning rate reduced final losses (e.g., Huber from 1.9772 to 0.5024) an
 
 Table~\ref{tab:mod_comparison} compares these results (labeled "Modified") with the prior 5x learning rate setup (1,000 steps, \( W = 0.0, b = 0.0 \)).
 
-\begin{table}[h]
+\begin{table}[H]
     \centering
     \caption{Comparison of 5x LR (Previous) vs. Modified Setup}
     \label{tab:mod_comparison}
@@ -175,7 +175,7 @@ Table~\ref{tab:mod_comparison} compares these results (labeled "Modified") with 
 
 Huber Loss benefited most, reducing loss by 0.075 and aligning \( W, b \) closer to the true values, thanks to more steps. Squared and Hybrid losses showed minimal loss improvement but slightly refined parameters. Figure~\ref{fig:patience_curves} visualizes these trends.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{assets/patience.png}
     \caption{Loss Curves for Squared, Huber, and Hybrid Losses with Modified Setup}
@@ -200,7 +200,7 @@ I activated flags to introduce noise into the linear regression model (\( Y = 3X
 
 - \textbf{Generalizability}: In classification, Gaussian noise might blur decision boundaries, Uniform could stabilize training with fewer outliers, and Laplace might challenge robustness due to extreme values. Nonlinear models (e.g., neural networks) may amplify these effects, with weight noise acting as regularization and LR noise mimicking adaptive optimizers. However, high noise levels could disrupt convergence universally, though robust losses (e.g., Huber) may adapt better across tasks.
 
-\begin{table}[h]
+\begin{table}[H]
     \centering
     \caption{Comparison of Noiseless vs. Noisy Setups}
     \label{tab:noise_comparison}
@@ -224,21 +224,21 @@ I activated flags to introduce noise into the linear regression model (\( Y = 3X
     \end{tabular}
 \end{table}
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{assets/gaussian_noise.png}
     \caption{Gaussian Noise}
     \label{fig:gaussian_noise_curve}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{assets/uniform_noise.png}
     \caption{Uniform Noise}
     \label{fig:uniform_noise_curve}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{assets/laplace_noise.png}
     \caption{Laplace Noise}
@@ -261,7 +261,7 @@ Table~\ref{tab:noise_comparison} from the noise impact analysis supports these f
 
 To evaluate computational efficiency, I measured the average time per training step on CPU and GPU for my model with 5,000 steps and Gaussian noise. Using a single line to enforce device usage, I tracked time across all steps for each loss function on an Intel CPU and NVIDIA GPU. Table~\ref{tab:time_comparison} presents the results.
 
-\begin{table}[h]
+\begin{table}[H]
     \centering
     \caption{Average Time per Step (seconds)}
     \label{tab:time_comparison}
@@ -277,4 +277,255 @@ To evaluate computational efficiency, I measured the average time per training s
 \end{table}
 
 Surprisingly, the GPU slightly underperformed the CPU, with squared loss time rising from 0.0044s to 0.0046s, Huber from 0.0061s to 0.0063s, and hybrid from 0.0054s to 0.0056s—an increase of about 3-4\%. Device enforcement ensured consistent hardware use, verified post-run. This unexpected result likely stems from the model’s simplicity—10,000 examples and basic linear operations—where GPU overhead (e.g., data transfer) outweighs its parallelization benefits. Larger or more complex models would likely reverse this trend, favoring GPU acceleration.
+
+\section{Problem 2: Logistic Regression}
+\subsection{Loss Function}
+
+This study employs the sparse softmax cross-entropy loss function, well-suited for the multi-class classification task of the Fashion MNIST dataset, which comprises 60,000 training and 10,000 test images, each labeled with one of 10 clothing classes. The loss efficiently manages mutually exclusive categories: its softmax component transforms logits—computed as \(\texttt{tf.matmul(img, w) + b}\)—into a probability distribution, while the cross-entropy component minimizes the divergence between these probabilities and the true integer labels (0–9). The "sparse" aspect eliminates the need for one-hot encoding, boosting computational efficiency and encouraging confident predictions by penalizing low probabilities for correct classes.
+
+\begin{equation}
+L = -\frac{1}{N} \sum_{i=1}^{N} \log\left(\frac{e^{z_{i, y_i}}}{\sum_{j=0}^{C-1} e^{z_{i, j}}}\right)
+\end{equation}
+
+Implemented via \(\texttt{tf.nn.sparse\_softmax\_cross\_entropy\_with\_logits}\), this loss combines softmax and cross-entropy into a single, numerically stable operation—crucial when paired with the custom \(\texttt{GradientDescent}\) optimizer. Alternatives like mean squared error falter for discrete classification, binary cross-entropy suits only two-class problems, and regular cross-entropy requires inefficient preprocessing. Thus, sparse softmax cross-entropy optimally leverages Fashion MNIST’s label structure and the model’s logit outputs.
+
+\subsection{Optimizers}
+
+This research investigates two optimizers—Gradient Descent and Momentum—used to train a logistic regression model on Fashion MNIST. Their performance is assessed through training and validation accuracy trends, final test accuracy, learned weight visualizations, and test image predictions, followed by a comparison of convergence speed and generalization.
+
+\subsubsection{Gradient Descent Optimizer}
+
+Gradient Descent minimizes the loss by iteratively updating weights based on the gradient, scaled by a learning rate of 0.01. The model was trained for 50 epochs with a batch size of 128, providing a simple yet effective optimization strategy.
+
+\paragraph{Training and Validation Accuracy}
+
+Figure \ref{fig:gd_accuracy} illustrates the training (blue) and validation (orange) accuracies. Training accuracy rises from 0.695 to 0.825 within 10 epochs, stabilizing at 0.8500 by epoch 20. Validation accuracy mirrors this, climbing from 0.695 to 0.820 in 10 epochs and settling at 0.8428, with minor fluctuations (0.835–0.842). The rapid early gains and narrow accuracy gap suggest efficient learning and strong generalization, with convergence evident by epoch 20.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/q2/gradient_descent/accuracy_50_epochs.png}
+    \caption{Training and Validation Accuracy for Gradient Descent Optimizer}
+    \label{fig:gd_accuracy}
+\end{figure}
+
+\paragraph{Final Test Accuracy}
+
+The model achieves a test accuracy of 0.8428, aligning closely with validation accuracy and confirming robust generalization to unseen data.
+
+\paragraph{Visualization of Learned Weights}
+
+Figure \ref{fig:gd_weights} presents a 3x3 grid of heatmaps (Weights: 0–9) showing weight evolution. Initially, high weights (red) frame a central blue strip. By "Weights: 5," the blue region expands, and by "Weights: 9," it dominates, indicating refined focus on discriminative features over time.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/q2/gradient_descent/weights_50_epochs.png}
+    \caption{Learned Weights Progression Using Gradient Descent}
+    \label{fig:gd_weights}
+\end{figure}
+
+\paragraph{Model Predictions on Test Images}
+
+Figure \ref{fig:gd_images} displays a 3x3 grid of test images with true labels (e.g., ankle boot: 9, trousers: 1). The test accuracy of 0.8428 implies reliable predictions, supported by consistent intra-class recognition (e.g., trousers appearing twice).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/q2/gradient_descent/images_50_epochs.png}
+    \caption{Test Image Predictions Using Gradient Descent}
+    \label{fig:gd_images}
+\end{figure}
+
+\subsubsection{Momentum Optimizer}
+
+Momentum enhances Gradient Descent by incorporating past gradients (momentum parameter: 0.7, learning rate: 0.01), trained for 50 epochs with a batch size of 128.
+
+\paragraph{Training and Validation Accuracy}
+
+Figure \ref{fig:momentum_accuracy} shows training accuracy starting at 0.74, reaching 0.82 by epoch 10, and leveling at 0.8618 by epoch 50. Validation accuracy rises from 0.74 to 0.82 in 10 epochs, ending at 0.8521 with fluctuations (0.83–0.85) post-epoch 20. The swift initial rise reflects faster convergence, though a slightly wider accuracy gap suggests mild overfitting.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/q2/momentum/accuracy_50_epochs.png}
+    \caption{Training and Validation Accuracy for Momentum Optimizer}
+    \label{fig:momentum_accuracy}
+\end{figure}
+
+\paragraph{Final Test Accuracy}
+
+A test accuracy of 0.8521, near the validation accuracy, indicates strong generalization, slightly outperforming Gradient Descent.
+
+\paragraph{Visualization of Learned Weights}
+
+Figure \ref{fig:momentum_weights} (5x2 grid, Weights: 0–9) shows initial weights with a blue strip against a red background. By "Weights: 7," the blue area grows with varied patches; blank subplots for Weights: 8–9 suggest early convergence or missing data, highlighting adaptive feature refinement.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/q2/momentum/weights_50_epochs.png}
+    \caption{Learned Weights Progression Using Momentum}
+    \label{fig:momentum_weights}
+\end{figure}
+
+\paragraph{Model Predictions on Test Images}
+
+The test accuracy of 0.8521 suggests dependable performance, with typical predictions (e.g., ankle boot: 9) reflecting effective pattern learning (Figure \ref{fig:momentum_images}).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/q2/momentum/images_50_epochs.png}
+    \caption{Test Image Predictions Using Momentum}
+    \label{fig:momentum_images}
+\end{figure}
+
+\subsubsection{Comparison of Optimizers}
+
+Having examined both optimizers individually, I now compare their convergence speeds and generalization capabilities to determine which converges faster and which reaches a better local minimum or generalizes more effectively.
+
+\paragraph{Convergence Speed}  
+  Momentum reaches 0.82 training accuracy by epoch 10, slightly ahead of Gradient Descent’s 0.825, stabilizing at 0.8618 (vs. 0.8500 by epoch 20). Momentum’s use of past gradients accelerates convergence.
+
+\paragraph{Local Minima and Generalization}
+  Momentum’s test accuracy (0.8521) exceeds Gradient Descent’s (0.8428), indicating a better local minimum. However, its training-validation gap (0.0097) is larger than Gradient Descent’s (0.0072), hinting at mild overfitting, though superior test accuracy confirms better generalization.
+  
+Momentum outperforms Gradient Descent in speed and accuracy on Fashion MNIST.
+
+\subsection{Impact of Modified Configuration on Optimizers}
+
+The training setup was adjusted to 30,000 training samples, 30,000 validation samples, and 100 epochs (learning rate: 0.01, batch size: 128) to explore effects on performance and overfitting.
+
+\subsubsection{Gradient Descent Optimizer}
+
+Figure \ref{fig:gd_accuracy_100} shows training accuracy rising from 0.74 to 0.8618 and validation accuracy from 0.76 to 0.8521. The small gap (0.0097) indicates minimal overfitting, with extended epochs compensating for reduced data.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/q2/gradient_descent/accuracy_100_epochs_30k_train_split.png}
+    \caption{Accuracy for Gradient Descent (100 Epochs, 30k Train/30k Validation)}
+    \label{fig:gd_accuracy_100}
+\end{figure}
+
+\subsubsection{Momentum Optimizer}
+
+Figure \ref{fig:momentum_accuracy_100} reveals training accuracy increasing from 0.725 to 0.8664 and validation accuracy from 0.725 to 0.8555 (gap: 0.0109). Slight overfitting emerges, but performance improves with longer training.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/q2/momentum/accuracy_100_epochs_30k_train_split.png}
+    \caption{Accuracy for Momentum (100 Epochs, 30k Train/30k Validation)}
+    \label{fig:momentum_accuracy_100}
+\end{figure}
+
+\subsection{Effect of Batch Size}
+
+Reducing the batch size to 32 (30,000 train/validation samples, 100 epochs) was tested.
+
+\subsubsection{Gradient Descent Optimizer}
+
+Training accuracy reaches 0.8532 and validation 0.8485 (gap: 0.0047), showing stable learning with excellent generalization despite noisier updates (Figure \ref{fig:gd_accuracy_32}).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/q2/gradient_descent/accuracy_100_epochs_30k_train_split_batch_32.png}
+    \caption{Accuracy for Gradient Descent (Batch Size 32)}
+    \label{fig:gd_accuracy_32}
+\end{figure}
+
+\subsubsection{Momentum Optimizer}
+
+Training accuracy hits 0.8740 and validation 0.8533 (gap: 0.0207), indicating higher accuracy but mild overfitting due to sensitivity to noise (Figure \ref{fig:momentum_accuracy_32}).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/q2/momentum/accuracy_100_epochs_30k_train_split_batch_32.png}
+    \caption{Accuracy for Momentum (Batch Size 32)}
+    \label{fig:momentum_accuracy_32}
+\end{figure}
+
+\subsubsection{Comparison and Impact of Batch Size Reduction}
+
+Batch size reduction increases gradient noise. Gradient Descent maintains stability, while Momentum achieves higher accuracy with greater overfitting risk.
+
+\subsection{Performance on CPU and GPU}
+
+Time efficiency was compared over 100 epochs (batch size: 128, 50,000 training samples):
+
+\begin{itemize}
+    \item \textbf{Gradient Descent (GPU)}: 1.66 s/epoch (fastest)
+    \item \textbf{Gradient Descent (CPU)}: 1.75 s/epoch
+    \item \textbf{Momentum (CPU)}: 1.82 s/epoch
+    \item \textbf{Momentum (GPU)}: 1.83 s/epoch
+\end{itemize}   
+
+GPU boosts Gradient Descent by 5.1\%, but Momentum sees no benefit, making Gradient Descent with GPU the most efficient.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \textbf{Optimizer} & \textbf{Hardware} & \textbf{Avg Time per Epoch (s)} \\ \hline
+        Gradient Descent & GPU & 1.66 \\ \hline
+        Gradient Descent & CPU & 1.75 \\ \hline
+        Momentum & CPU & 1.82 \\ \hline
+        Momentum & GPU & 1.83 \\ \hline
+    \end{tabular}
+    \caption{Time per Epoch Across Configurations}
+    \label{tab:performance_comparison}
+\end{table}
+
+\subsection{Overfitting Analysis}
+
+For the initial setup (50,000 samples, 50 epochs, batch size: 128):
+\begin{itemize}
+    \item \textbf{Gradient Descent}: Training 0.8500, validation 0.8428 (gap: 0.0072)
+    \item \textbf{Momentum}: Training 0.8618, validation 0.8521 (gap: 0.0097)
+\end{itemize}
+
+Both show minimal overfitting, with Gradient Descent slightly better at generalization.
+
+\subsection{Performance Comparison with Random Forest and SVM}
+
+Logistic regression was compared to Random Forest (100 estimators) and SVM (RBF kernel):
+\begin{itemize}
+    \item \textbf{Gradient Descent}: 0.8428
+    \item \textbf{Momentum}: 0.8521
+    \item \textbf{Random Forest}: 0.8757
+    \item \textbf{SVM}: 0.8790
+\end{itemize}
+
+SVM and Random Forest outperform logistic regression, with SVM leading slightly.
+
+\subsection{T-SNE Visualization of Class Weights}
+
+To further elucidate the behavior of the logistic regression model trained on the Fashion MNIST dataset, t-SNE (t-distributed Stochastic Neighbor Embedding) is employed to project the high-dimensional class weights into a two-dimensional space. This dimensionality reduction technique preserves local structures, offering a visual representation of how the Momentum and Gradient Descent optimizers distinguish the 10 clothing classes after 50 epochs of training with a batch size of 128, 50000 training set size with 10000 for validation, and a learning rate of 0.01. Separate visualizations for each optimizer reveal their effectiveness in capturing discriminative features and highlight differences in their optimization dynamics.
+
+\subsubsection{Momentum T-SNE Visualization}
+
+Figure \ref{fig:momentum_tsne} exhibits clear patterns in the learned weights, reflecting Momentum’s ability to capture diverse features across categories. The spread highlights effective feature distinction, with classes like T-shirt/top and Pullover clustered closely, while Ankle boot and Sandal are positioned far apart.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/q2/momentum/tsne_100_epochs.png}
+    \caption{T-SNE Visualization of Class Weights Using Momentum}
+    \label{fig:momentum_tsne}
+\end{figure}
+
+\subsubsection{Gradient Descent T-SNE Visualization}
+
+Figure \ref{fig:gd_tsne} presents the t-SNE visualization for the Gradient Descent optimizer, using the same axis ranges and color coding as figure \ref{fig:momentum_tsne} for consistency. The distribution closely resembles Momentum’s, with classes like Dress, Pullover, and T-shirt/top clustered together. Though the axes are wider, the weight patterns remain largely similar.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/q2/gradient_descent/tsne_100_epochs.png}
+    \caption{t-SNE Visualization of Class Weights Using Gradient Descent}
+    \label{fig:gd_tsne}
+\end{figure}
+
+\begin{thebibliography}{9}
+
+\bibitem{goodfellow2016deep}
+Goodfellow, I., Bengio, Y., \& Courville, A. (2016). \emph{Deep Learning}. MIT Press.
+
+\bibitem{huber1964robust}
+Huber, P. J. (1964). Robust Estimation of a Location Parameter. \emph{Annals of Mathematical Statistics}, 35(1), 73--101.
+
+\end{thebibliography}
+
 \end{document}
