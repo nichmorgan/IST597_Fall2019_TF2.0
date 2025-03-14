@@ -8,7 +8,7 @@ from tqdm import tqdm
 import numpy as np
 import tensorflow as tf
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' # Suppresses warnings, only shows errors
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' # Suppresses warnings, only shows errors
 
 ## Permuted MNIST
 (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
