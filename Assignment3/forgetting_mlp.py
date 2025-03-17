@@ -4,7 +4,11 @@ Author:-aam35
 Analyzing Forgetting in neural networks
 """
 import os
-from enum import Enum, auto
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # Suppresses warnings, only shows errors
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"  # Turn off oneDNN
+
+from enum import Enum
 from typing import Annotated, TypedDict
 
 import matplotlib.pyplot as plt
@@ -15,8 +19,6 @@ from pydantic_settings import BaseSettings
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # Suppresses warnings, only shows errors
-os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"  # Turn off oneDNN
 SEED = 163537897  # Computed from poly_hash('mcn97')
 tf.random.set_seed(SEED)
 np.random.seed(SEED)
@@ -56,10 +58,10 @@ def create_mlp(
     )
 
 
-class Optimizer(Enum):
-    ADAM = auto()
-    SGD = auto()
-    RMSPROP = auto()
+class Optimizer(str, Enum):
+    ADAM = "adam"
+    SGD = "sgd"
+    RMSPROP = "rmsprop"
 
 
 class ExperimentParams(TypedDict):
@@ -91,18 +93,18 @@ class ExperimentParams(TypedDict):
 
 def get_optimizer(params: ExperimentParams):
     opt_type = params["optimizer"]
-    samples_per_task = 60000  # Fixed for MNIST
-    total_epochs = params["num_epochs_initial"] + params["num_epochs_per_task"] * (
-        params["num_tasks_to_run"] - 1
-    )
-    total_steps = (total_epochs * samples_per_task) // params["minibatch_size"]
-
     if opt_type == Optimizer.ADAM:
         initial_lr = 0.01
     elif opt_type == Optimizer.SGD:
         initial_lr = 0.1
     elif opt_type == Optimizer.RMSPROP:
         initial_lr = 0.01
+
+    samples_per_task = 60000  # Fixed for MNIST
+    total_epochs = params["num_epochs_initial"] + params["num_epochs_per_task"] * (
+        params["num_tasks_to_run"] - 1
+    )
+    total_steps = (total_epochs * samples_per_task) // params["minibatch_size"]
 
     # Dynamic decay_steps: ~10% of total steps
     decay_steps = total_steps // 10  # Decay 10 times over training
@@ -159,8 +161,8 @@ def train(model, optimizer, x, y, epochs, minibatch_size, pbar_desc):
             with tf.GradientTape() as tape:
                 predictions = model(batch_x, training=True)
                 loss = tf.keras.losses.categorical_crossentropy(batch_y, predictions)
-            gradients = tape.gradient(loss, model.trainable_variables)
-            optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+                gradients = tape.gradient(loss, model.trainable_variables)
+                optimizer.apply_gradients(zip(gradients, model.trainable_variables))
 
         val_predictions = model(x_val, training=False)
         val_loss = tf.reduce_mean(
@@ -312,7 +314,7 @@ def run_experiment(params: ExperimentParams):
 
 class Settings(BaseSettings):
     depth: Annotated[int, Field(ge=1)] = 2
-    optimizer: str = Optimizer.ADAM.name
+    optimizer: Optimizer = Optimizer.ADAM
     regularizer: str = list(regularizer_dict.keys())[0]
     dropout: bool = True
 
@@ -325,11 +327,10 @@ class Settings(BaseSettings):
 
 if __name__ == "__main__":
     settings = Settings()
-    optimizer = Optimizer[settings.optimizer]
     params = ExperimentParams.new(
         depth=settings.depth,
         regularizer_name=settings.regularizer,
-        optimizer=optimizer,
+        optimizer=settings.optimizer,
         dropout=settings.dropout,
     )
     run_experiment(params)
