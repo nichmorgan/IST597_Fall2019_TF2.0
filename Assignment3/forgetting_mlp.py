@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Author:-aam35
+Author:-mcn97
 Analyzing Forgetting in neural networks
 """
 import os
