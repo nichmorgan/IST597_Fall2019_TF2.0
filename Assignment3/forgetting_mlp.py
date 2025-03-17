@@ -4,25 +4,36 @@ Author:-mcn97
 Analyzing Forgetting in neural networks
 """
 import os
+import psutil
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # Suppresses warnings, only shows errors
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"  # Turn off oneDNN
 
+def log_memory(step):
+    print(f"{step}: {psutil.Process().memory_info().rss / 1024**3:.2f} GB")
+    
+log_memory('BEFORE IMPORTS')
 from enum import Enum
 from typing import Annotated, TypedDict
 
 import matplotlib.pyplot as plt
 import numpy as np
+log_memory('BEFORE TF')
 import tensorflow as tf
+log_memory('AFTER TF')
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 
+log_memory('AFTER IMPORTS')
+
+
+log_memory('START')
+
 SEED = 163537897  # Computed from poly_hash('mcn97')
 tf.random.set_seed(SEED)
 np.random.seed(SEED)
-
 
 # Define MLP model using Keras Sequential API
 def create_mlp(
@@ -66,16 +77,17 @@ class Optimizer(str, Enum):
 
 class ExperimentParams(TypedDict):
     num_tasks_to_run: int
+    num_epochs_per_task: int
+    num_epochs_initial: int
     optimizer: Optimizer
     dropout: bool
     depth: int
     regularizer_name: str
     minibatch_size: int
-    num_epochs_initial: int
-    num_epochs_per_task: int
+    output_folder: str
 
     @classmethod
-    def new(cls, *, depth, regularizer_name, optimizer, dropout, **kwargs):
+    def new(cls, *, depth, regularizer_name, optimizer, dropout, output_folder, **kwargs):
         return cls(
             {
                 "num_tasks_to_run": 10,
@@ -191,7 +203,6 @@ def test(model, x, y):
     accuracy = tf.reduce_mean(tf.keras.metrics.categorical_accuracy(y, predictions))
     return accuracy.numpy()
 
-
 regularizer_dict = {
     "NLL": None,  # No regularization
     "L1": tf.keras.regularizers.l1(0.01),  # L1 regularization
@@ -199,11 +210,13 @@ regularizer_dict = {
     "L1+L2": tf.keras.regularizers.l1_l2(l1=0.01, l2=0.01),  # Combined L1 and L2
 }
 
+log_memory('DATASET')
 (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 x_train = x_train.reshape(-1, 784).astype("float32") / 255.0  # Flatten and normalize
 x_test = x_test.reshape(-1, 784).astype("float32") / 255.0  # Flatten and normalize
 y_train = tf.keras.utils.to_categorical(y_train, 10)  # One-hot encode labels
 y_test = tf.keras.utils.to_categorical(y_test, 10)
+log_memory('POST-DATASET')
 
 
 def plot_forgetting(R, params: ExperimentParams):
@@ -224,12 +237,13 @@ def plot_forgetting(R, params: ExperimentParams):
     plt.legend(title="Task Evaluated", loc="best")  # Add legend to distinguish tasks
     plt.grid(True, linestyle="--", alpha=0.7)  # Add grid for better readability
     plt.savefig(
-        f"forgetting_mlp_depth{params['depth']}_reg{params['regularizer_name']}_dropout{params['dropout']}.png"
+        f"{params['output_folder']}/forgetting_mlp_depth{params['depth']}_reg{params['regularizer_name']}_dropout{params['dropout']}.png"
     )
     plt.close()
 
 
 def run_experiment(params: ExperimentParams):
+    log_memory('STARTING-EXP')
     task_permutation = [
         np.random.permutation(784) for _ in range(params["num_tasks_to_run"])
     ]
@@ -246,6 +260,8 @@ def run_experiment(params: ExperimentParams):
     permutation = task_permutation[0]
     x_train_permuted, y_train_permuted = permute_dataset(x_train, y_train, permutation)
     x_test_permuted, y_test_permuted = permute_dataset(x_test, y_test, permutation)
+    
+    log_memory('BEFORE-EXP-TRAIN-A')
     model = train(
         model,
         optimizer,
@@ -255,6 +271,7 @@ def run_experiment(params: ExperimentParams):
         params["minibatch_size"],
         "Task A",
     )
+    log_memory('AFTER-EXP-TRAIN-A')
     print("Testing Task A")
     R[0, 0] = test(model, x_test_permuted, y_test_permuted)
 
@@ -317,6 +334,7 @@ class Settings(BaseSettings):
     optimizer: Optimizer = Optimizer.ADAM
     regularizer: str = list(regularizer_dict.keys())[0]
     dropout: bool = True
+    output_folder: str = "./"
 
     @field_validator("regularizer")
     def validate_regilarizer(value: str) -> str:
@@ -332,5 +350,9 @@ if __name__ == "__main__":
         regularizer_name=settings.regularizer,
         optimizer=settings.optimizer,
         dropout=settings.dropout,
+        output_folder=settings.output_folder,
+        num_tasks_to_run=2,
+        num_epochs_per_task=1,
+        num_epochs_initial=1,
     )
     run_experiment(params)

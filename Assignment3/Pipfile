@@ -5,10 +5,11 @@ name = "pypi"
 
 [packages]
 tqdm = "*"
-tensorflow = "*"
 pydantic-settings = "*"
-matplotlib = "*"
 scikit-learn = "*"
+tensorflow = {extras = ["and-cuda"], version = "==2.16.1"}
+matplotlib = "*"
+psutil = "*"
 
 [dev-packages]
 isort = "*"
