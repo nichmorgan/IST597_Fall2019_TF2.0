@@ -6,8 +6,13 @@ name = "pypi"
 [packages]
 tqdm = "*"
 tensorflow = "*"
+pydantic-settings = "*"
+matplotlib = "*"
+scikit-learn = "*"
 
 [dev-packages]
+isort = "*"
+black = "*"
 
 [requires]
 python_version = "3.11"
