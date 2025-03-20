@@ -8,26 +8,41 @@ mkdir -p $output_folder
 #SBATCH --output=$output_folder/output_%a.log
 #SBATCH --error=$output_folder/error_%a.log
 #SBATCH --time=1-00:00:00
-#SBATCH --mem-per-cpu=128GB
+#SBATCH --mem=64GB          # Increased to 64GB to avoid OOM
+#SBATCH --nodes=1
 #SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
+#SBATCH --pty
+
+# Start memory monitoring in the background
+echo "Starting memory usage monitoring..." > $output_folder/memory_usage.log
+(
+  while true; do
+    sstat -j $SLURM_JOB_ID --format="AveRSS,MaxRSS" >> $output_folder/memory_usage.log 2>/dev/null
+    sleep 1  # Log every 1 second for finer granularity
+  done
+) &
+
+# Store the PID of the monitoring process
+MONITOR_PID=$!
 
 module load anaconda3
 
 export conda_env_name="py311-forgetting-mlp"
 if ! conda env list | grep -q "^$conda_env_name\s"; then
     conda create -n $conda_env_name python=3.11
-fi 
+fi
 conda activate $conda_env_name
 python -V
-ulimit -v unlimited
 
-export CUDA_VISIBLE_DEVICES=""  # Force CPU-only
 export depth=$1
 export regularizer=$2
 export optimizer=$3
 export dropout=$4
 
-
-pip install -r requirements.txt
-echo "Memory before Python: $(free -h)" >> $output_folder/debug.log
+pip install -r requirements.txt -q
 python forgetting_mlp.py
+
+# Stop the memory monitoring after the script finishes or fails
+kill $MONITOR_PID
+echo "Memory monitoring stopped" >> $output_folder/memory_usage.log

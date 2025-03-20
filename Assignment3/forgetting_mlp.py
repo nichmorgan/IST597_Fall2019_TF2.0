@@ -3,37 +3,35 @@
 Author:-mcn97
 Analyzing Forgetting in neural networks
 """
+
 import os
+
 import psutil
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # Suppresses warnings, only shows errors
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"  # Turn off oneDNN
 
-def log_memory(step):
-    print(f"{step}: {psutil.Process().memory_info().rss / 1024**3:.2f} GB")
-    
-log_memory('BEFORE IMPORTS')
 from enum import Enum
 from typing import Annotated, TypedDict
 
 import matplotlib.pyplot as plt
 import numpy as np
-log_memory('BEFORE TF')
+
 import tensorflow as tf
-log_memory('AFTER TF')
-from pydantic import Field, field_validator
+from pathlib import Path
+
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 
-log_memory('AFTER IMPORTS')
 
 
-log_memory('START')
 
 SEED = 163537897  # Computed from poly_hash('mcn97')
 tf.random.set_seed(SEED)
 np.random.seed(SEED)
+
 
 # Define MLP model using Keras Sequential API
 def create_mlp(
@@ -80,6 +78,7 @@ class ExperimentParams(TypedDict):
     num_epochs_per_task: int
     num_epochs_initial: int
     optimizer: Optimizer
+    learning_rate: int
     dropout: bool
     depth: int
     regularizer_name: str
@@ -87,7 +86,9 @@ class ExperimentParams(TypedDict):
     output_folder: str
 
     @classmethod
-    def new(cls, *, depth, regularizer_name, optimizer, dropout, output_folder, **kwargs):
+    def new(
+        cls, *, depth, regularizer_name, optimizer, dropout, learning_rate, output_folder, **kwargs
+    ):
         return cls(
             {
                 "num_tasks_to_run": 10,
@@ -98,6 +99,8 @@ class ExperimentParams(TypedDict):
                 "optimizer": optimizer,
                 "depth": depth,
                 "dropout": dropout,
+                "output_folder": output_folder,
+                "learning_rate": learning_rate,
                 **kwargs,
             }
         )
@@ -105,12 +108,7 @@ class ExperimentParams(TypedDict):
 
 def get_optimizer(params: ExperimentParams):
     opt_type = params["optimizer"]
-    if opt_type == Optimizer.ADAM:
-        initial_lr = 0.01
-    elif opt_type == Optimizer.SGD:
-        initial_lr = 0.1
-    elif opt_type == Optimizer.RMSPROP:
-        initial_lr = 0.01
+    initial_lr = params['learning_rate']
 
     samples_per_task = 60000  # Fixed for MNIST
     total_epochs = params["num_epochs_initial"] + params["num_epochs_per_task"] * (
@@ -203,6 +201,7 @@ def test(model, x, y):
     accuracy = tf.reduce_mean(tf.keras.metrics.categorical_accuracy(y, predictions))
     return accuracy.numpy()
 
+
 regularizer_dict = {
     "NLL": None,  # No regularization
     "L1": tf.keras.regularizers.l1(0.01),  # L1 regularization
@@ -210,13 +209,11 @@ regularizer_dict = {
     "L1+L2": tf.keras.regularizers.l1_l2(l1=0.01, l2=0.01),  # Combined L1 and L2
 }
 
-log_memory('DATASET')
 (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 x_train = x_train.reshape(-1, 784).astype("float32") / 255.0  # Flatten and normalize
 x_test = x_test.reshape(-1, 784).astype("float32") / 255.0  # Flatten and normalize
 y_train = tf.keras.utils.to_categorical(y_train, 10)  # One-hot encode labels
 y_test = tf.keras.utils.to_categorical(y_test, 10)
-log_memory('POST-DATASET')
 
 
 def plot_forgetting(R, params: ExperimentParams):
@@ -243,7 +240,6 @@ def plot_forgetting(R, params: ExperimentParams):
 
 
 def run_experiment(params: ExperimentParams):
-    log_memory('STARTING-EXP')
     task_permutation = [
         np.random.permutation(784) for _ in range(params["num_tasks_to_run"])
     ]
@@ -260,8 +256,7 @@ def run_experiment(params: ExperimentParams):
     permutation = task_permutation[0]
     x_train_permuted, y_train_permuted = permute_dataset(x_train, y_train, permutation)
     x_test_permuted, y_test_permuted = permute_dataset(x_test, y_test, permutation)
-    
-    log_memory('BEFORE-EXP-TRAIN-A')
+
     model = train(
         model,
         optimizer,
@@ -271,7 +266,6 @@ def run_experiment(params: ExperimentParams):
         params["minibatch_size"],
         "Task A",
     )
-    log_memory('AFTER-EXP-TRAIN-A')
     print("Testing Task A")
     R[0, 0] = test(model, x_test_permuted, y_test_permuted)
 
@@ -309,6 +303,7 @@ def run_experiment(params: ExperimentParams):
             )
             R[t, i] = test(model, x_test_permuted_i, y_test_permuted_i)
 
+
     # Compute metrics
     T = params["num_tasks_to_run"]
     ACC = np.mean(R[T - 1, :])  # Average accuracy after training on all tasks
@@ -317,6 +312,7 @@ def run_experiment(params: ExperimentParams):
     BWT = np.mean(bwt_data)  # Backward transfer
     TBWT = np.sum(bwt_data)  # Total Backward Transfer
     CBWT = np.mean([R[i, i] - R[T - 1, i] for i in range(T - 1)])  # Average Forgetting
+
 
     print(f"Params: {params}")
     print(f'Regularizer: {params["regularizer_name"]}')
@@ -331,10 +327,17 @@ def run_experiment(params: ExperimentParams):
 
 class Settings(BaseSettings):
     depth: Annotated[int, Field(ge=1)] = 2
-    optimizer: Optimizer = Optimizer.ADAM
-    regularizer: str = list(regularizer_dict.keys())[0]
+    optimizer: Optimizer = Optimizer.SGD
+    regularizer: str = list(regularizer_dict.keys())[1]
     dropout: bool = True
-    output_folder: str = "./"
+    learning_rate: float = 0.001
+    output_folder: str = ''
+
+    @model_validator(mode='after')
+    def validate_output_folder(self):
+        if not self.output_folder:
+            self.output_folder = f"./results/depth_{self.depth}__reg_{self.regularizer}__optimizer_{self.optimizer.value}__dropout_{self.dropout}"
+        Path(self.output_folder).mkdir(parents=True, exist_ok=True)
 
     @field_validator("regularizer")
     def validate_regilarizer(value: str) -> str:
@@ -345,14 +348,16 @@ class Settings(BaseSettings):
 
 if __name__ == "__main__":
     settings = Settings()
+    print(settings.model_dump())
     params = ExperimentParams.new(
         depth=settings.depth,
         regularizer_name=settings.regularizer,
         optimizer=settings.optimizer,
         dropout=settings.dropout,
         output_folder=settings.output_folder,
-        num_tasks_to_run=2,
-        num_epochs_per_task=1,
-        num_epochs_initial=1,
+        learning_rate=settings.learning_rate,
+        # num_tasks_to_run=2,
+        # num_epochs_per_task=1,
+        # num_epochs_initial=1,
     )
     run_experiment(params)
