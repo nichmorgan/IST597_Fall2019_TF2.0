@@ -6,8 +6,6 @@ Analyzing Forgetting in neural networks
 
 import os
 
-import psutil
-
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # Suppresses warnings, only shows errors
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"  # Turn off oneDNN
 
